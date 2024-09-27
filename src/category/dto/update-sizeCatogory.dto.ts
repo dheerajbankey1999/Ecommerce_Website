@@ -7,7 +7,7 @@ export class UpdateSizeCategoryDto {
   @ApiProperty()
   @IsInt()
   @IsNotEmpty()
-  sizeCatoryId: number;
+  sizeCategoryId: number;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -21,4 +21,3 @@ export class UpdateSizeCategoryDto {
   @Type(() => UpdateSizeOptionsDto)
   sizeOptions?: UpdateSizeOptionsDto[];
 }
- 

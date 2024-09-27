@@ -63,7 +63,7 @@ async updateCategorySize(
 ) {  
  //console.log("These is data",data);
   await this.categoryService.updateCategorySize( {
-    sizeCatoryId: data.sizeCatoryId,
+    sizeCategoryId: data.sizeCategoryId,
     categoryName: data.categoryName,
     sizeOptions: data.sizeOptions,
   });

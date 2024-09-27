@@ -26,6 +26,14 @@ export class ProductService {
     private readonly storageService: StorageService,
   ) {}
    
+
+  async getByProductCategoryId(categoryId: number): Promise<ProductCategory> {
+    return await this.prisma.productCategory.findUniqueOrThrow({
+      where: {
+        categoryId: categoryId,
+      },
+    });
+  }
   async createProductCategory(
     options: {
       fieldName: string;
@@ -136,7 +144,7 @@ export class ProductService {
       throw new Error("Category ID must be provided.");
     }
   const { categoryId, fieldName, fieldImage, genderId, genderName } = options;
- 
+  await this.getByProductCategoryId(categoryId);
     const updateData: { [key: string]: any } = {};
   
     if (fieldName !== undefined) {
@@ -146,8 +154,7 @@ export class ProductService {
     if (fieldImage !== undefined) {
       updateData.fieldImage = fieldImage;
     }
-  
-    // Update the productGender if genderId and genderName are provided
+
     if (genderId && genderName) {
       await this.prisma.productGender.update({
         where: { genderId: genderId },
@@ -155,10 +162,9 @@ export class ProductService {
       });
     }
   
-    // Update the product category
     const updatedCategory = await this.prisma.productCategory.update({
       where: { categoryId: categoryId }, 
-      data: updateData, // Directly use the update data object
+      data: updateData, 
       include: {
         sizeCategory: true,
         productGender: true,
@@ -167,48 +173,13 @@ export class ProductService {
   
     return updatedCategory;
   }
-  
-
-  // async deleteProductCategory(categoryId: number): Promise<ProductCategory> {
-  //   console.log("HFd;lnf",categoryId);
-  //   await this.prisma.sizeCategory.deleteMany({
-  //     where: { sizeCategoryId: categoryId },
-  //     include: { 
-  //       sizeOptions: true,
-  //     }
-  // });
-  // return  await this.prisma.productCategory.delete({
-  //     where: {  categoryId: categoryId },
-  //     include: { 
-  //       productGender: true,
-  //     }
-  //   });
-  // }
-
-//   async deleteProductCategory(categoryId: number): Promise<ProductCategory> {
-//     console.log("Deleting category with ID:", categoryId);
-
-//     // First, get all related sizeCategoryIds
-//     const sizeCategories = await this.prisma.sizeCategory.findMany({
-//         where: { productCategoryId: categoryId },
-//         select: { sizeCategoryId: true },
-//     });
-
-//     const sizeCategoryIds = sizeCategories.map(sizeCategory => sizeCategory.sizeCategoryId);
-
-//     // Then, delete related sizeOptions
-//     await this.prisma.sizeOption.deleteMany({
-//         where: { sizeCategoryId: { in: sizeCategoryIds } },
-//     });
-
-//     // Finally, delete the ProductCategory
-//     return await this.prisma.productCategory.delete({
-//         where: { categoryId: categoryId },
-//         include: { 
-//             productGender: true,
-//             sizeCategory: true,
-//         },
-//     });
-// }
-
+  async deleteProductCategory(categoryId: number): Promise<ProductCategory> {
+    await this.getByProductCategoryId(categoryId);
+  return  await this.prisma.productCategory.delete({
+      where: {  categoryId: categoryId },
+      include: { 
+        productGender:true,
+        sizeCategory: true}
+    });
+  }
 }

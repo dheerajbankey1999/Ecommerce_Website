@@ -24,6 +24,7 @@ import {
   SearchablePaginatedDto,
   UserType,
 } from '@Common';
+import { ProductCategory } from '@prisma/client';
 
 @ApiTags('Product')
 @ApiBearerAuth()
@@ -34,6 +35,8 @@ export class ProductController extends BaseController {
   constructor(private readonly productService: ProductService) {
     super();
   }
+
+ 
   @Post('category')
   async createProductCategory(
     @Body() data: CreateProductCategoryDto,
@@ -74,13 +77,13 @@ export class ProductController extends BaseController {
   }
 
   
-//   @Delete('category/:id')
-// async deleteProductCategory(
-//   @Req() req: AuthenticatedRequest,
-//   @Param('id', ParseIntPipe) categoryId: number,
-// ) {
-//   console.log("These is sizeCategory",categoryId);
-//   await this.productService.deleteProductCategory(categoryId);
-//   return { success: true, message: 'Size category deleted successfully' };
-// }
+  @Delete('category/:id')
+async deleteProductCategory(
+  @Req() req: AuthenticatedRequest,
+  @Param('id', ParseIntPipe) categoryId: number,
+) {
+  console.log("These is sizeCategory",categoryId);
+  await this.productService.deleteProductCategory(categoryId);
+  return { success: true, message: 'Size category deleted successfully' };
+}
 }

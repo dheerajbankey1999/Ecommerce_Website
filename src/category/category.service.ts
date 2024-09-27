@@ -25,6 +25,13 @@ export class CategoryService {
     private readonly utilsService: UtilsService,
     private readonly storageService: StorageService,
   ) {}
+  async getBySizeCategoryId(sizeCategoryId: number): Promise<SizeCategory> {
+    return await this.prisma.sizeCategory.findUniqueOrThrow({
+      where: {
+        sizeCategoryId: sizeCategoryId,
+      },
+    });
+  }
 
   async createCategorySize(data: CreateSizeCategoryDto): Promise<SizeCategory>{
     const { categoryName, sizeOptions } = data;
@@ -105,8 +112,8 @@ export class CategoryService {
     };
   }
 
-  async updateCategorySize(options?: {
-    sizeCatoryId: number;
+  async updateCategorySize(options: {
+    sizeCategoryId: number;
     categoryName?: string;
     sizeOptions?: Array<{
       sizeId?: number;
@@ -114,10 +121,11 @@ export class CategoryService {
       sortOrder?: number;
     }>;
   }) {
-    const { sizeCatoryId, categoryName, sizeOptions } = options || {};
+    const { sizeCategoryId, categoryName, sizeOptions } = options || {};
+    await this.getBySizeCategoryId(sizeCategoryId);
     if (categoryName) {
       await this.prisma.sizeCategory.update({
-        where: { sizeCategoryId: sizeCatoryId },
+        where: { sizeCategoryId: sizeCategoryId },
         data: { categoryName },
       });
     }
@@ -140,7 +148,7 @@ export class CategoryService {
   }
   
   async deleteCategorySize(sizeCatoryId: number): Promise<SizeCategory> {
-    console.log(sizeCatoryId);
+    //console.log(sizeCatoryId);
   return  await this.prisma.sizeCategory.delete({
       where: {  sizeCategoryId: sizeCatoryId },
       include: { sizeOption: true}
