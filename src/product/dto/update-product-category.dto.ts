@@ -1,11 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsInt, IsOptional } from 'class-validator';
+import { ProductCategory } from '@prisma/client';
 
 export class UpdateProductCategoryDto {
 
   @ApiProperty()
   @IsInt()
-  categoryId: number;
+  productCategoryId: number;
 
   @ApiPropertyOptional()
   @IsOptional()

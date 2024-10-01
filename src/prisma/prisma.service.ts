@@ -10,7 +10,7 @@ export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnApplicationShutdown
 {
-  SizeCategory: any;
+  Category: any;
   constructor() {
     super({
       errorFormat: 'minimal',

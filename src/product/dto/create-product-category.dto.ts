@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsInt, IsNotEmpty, IsOptional, ValidateNested, IsArray } from 'class-validator';
+import { Type } from 'class-transformer';
  
 
 export class CreateProductCategoryDto {
@@ -16,7 +17,7 @@ export class CreateProductCategoryDto {
   @ApiProperty()
   @IsInt()
   @IsNotEmpty()
-  sizeCategoryId: number;
+  categoryId: number;
 
 @ApiPropertyOptional()
   @IsOptional()

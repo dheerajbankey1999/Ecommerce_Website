@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ProductService } from './product.service';
-import { CreateProductCategoryDto, UpdateProductCategoryDto } from './dto';
+import { CreateProductCategoryDto, UpdateProductCategoryDto,CreateProductDto } from './dto';
 import {
   AccessGuard,
   AuthenticatedRequest,
@@ -25,7 +25,6 @@ import {
   UserType,
 } from '@Common';
 import { ProductCategory } from '@prisma/client';
-
 @ApiTags('Product')
 @ApiBearerAuth()
 @Roles(UserType.Admin)
@@ -44,7 +43,7 @@ export class ProductController extends BaseController {
     await this.productService.createProductCategory({
       fieldName: data.fieldName,
       fieldImage:data.fieldImage ?? '',
-      sizeCategoryId: data.sizeCategoryId,
+      categoryId: data.categoryId,
       genderName: data.genderName ?? '',
     })
     return { success: true }; 
@@ -67,7 +66,7 @@ export class ProductController extends BaseController {
   ) {
      console.log(data);
     const updatedCategory = await this.productService.updateProductCategory({
-      categoryId: data.categoryId,
+      productCategoryId: data.productCategoryId,
       fieldName:data.fieldName,
       fieldImage:data.fieldImage,
       genderId:data.genderId,
@@ -80,10 +79,24 @@ export class ProductController extends BaseController {
   @Delete('category/:id')
 async deleteProductCategory(
   @Req() req: AuthenticatedRequest,
-  @Param('id', ParseIntPipe) categoryId: number,
+  @Param('id', ParseIntPipe) productCategoryId: number,
 ) {
-  console.log("These is sizeCategory",categoryId);
-  await this.productService.deleteProductCategory(categoryId);
-  return { success: true, message: 'Size category deleted successfully' };
+//  console.log("These is sizeCategory",categoryId);
+  await this.productService.deleteProductCategory(productCategoryId);
+  return { success: true, message: 'Product category deleted successfully' };
 }
+
+@Post()
+    async createProduct(@Body() data: CreateProductDto) {
+        return this.productService.createProduct({
+          productName:data.productName,
+          productCategoryId:data.productCategoryId,
+          brandName:data.brandName,
+          productDescription:data.productDescription,
+          tagName: data.tagName,
+          sizeOptions:data.sizeOptions,
+          productItems: data.productItems
+          }
+        );
+    }
 }

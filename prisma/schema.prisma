@@ -261,45 +261,32 @@ model ProductGender {
 }
 
 model ProductCategory {
-  categoryId     Int             @id @default(autoincrement())
-  fieldName      String          @map("field_name")
-  fieldImage     String?         @map("field_image")
-  productGender  ProductGender[] @relation("GenderCategories")
-  products       Product[]       @relation("CategoryProducts")
-  sizeCategoryId Int?            @map("size_category_id")
-  sizeCategory   SizeCategory?   @relation(fields: [sizeCategoryId], references: [sizeCategoryId])
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
+  productCategoryId Int             @id @default(autoincrement())
+  fieldName         String          @map("field_name")
+  fieldImage        String?         @map("field_image")
+  productGender     ProductGender[] @relation("GenderCategories")
+  products          Product[]       @relation("CategoryProducts")
+  categoryId        Int?            @map("category_id")
+  category          Category?       @relation(fields: [categoryId], references: [categoryId])
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
 }
 
 model Product {
   productId          Int              @id @default(autoincrement())
   productName        String           @map("product_name")
-  categoryId         Int?             @map("category_id")
+  productCategoryId  Int?             @map("category_id")
   productDescription String?          @map("product_description")
+  brandName          String?          @map("brand_name")
+  tagName            String?          @map("tag_name")
   status             ProductStatus    @default(Active)
-  productCategory    ProductCategory? @relation("CategoryProducts", fields: [categoryId], references: [categoryId])
+  productCategory    ProductCategory? @relation("CategoryProducts", fields: [productCategoryId], references: [productCategoryId])
   productItems       ProductItem[]
-  brand              Brand?           @relation(fields: [brandId], references: [brandId])
-  brandId            Int?             @map("brand_id")
-  tag                Tag?             @relation("ProductTags", fields: [tagId], references: [tagId]) // Updated
-  tagId              Int?             @map("tag_id")
+  sizeOptions        SizeOption[]     @relation("ProductSizeOptions")
   createdAt          DateTime         @default(now()) @map("created_at")
   updatedAt          DateTime         @updatedAt @map("updated_at")
 
   @@map("products")
-}
-
-model Tag {
-  tagId    Int       @id @default(autoincrement())
-  name     String?   @unique
-  products Product[] @relation("ProductTags")
-}
-
-model Brand {
-  brandId   Int       @id @default(autoincrement())
-  brandName String?   @map("brand_name")
-  product   Product[]
 }
 
 model Colour {
@@ -308,38 +295,29 @@ model Colour {
   productItems ProductItem[]
 }
 
-model ProductImage {
-  imageId     Int          @id @default(autoincrement())
-  imageUrl    String?      @map("image_url")
-  itemId      Int?         @map("item_id")
-  productItem ProductItem? @relation(fields: [itemId], references: [itemId])
-}
-
-model SizeCategory {
-  sizeCategoryId  Int               @id @default(autoincrement()) @map("size_category_id")
+model Category {
+  categoryId      Int               @id @default(autoincrement()) @map("category_id")
   categoryName    String            @map("category_name")
-  sizeOption      SizeOption[]
   ProductCategory ProductCategory[]
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
 }
 
 model SizeOption {
-  sizeId          Int               @id @default(autoincrement())
-  sizeName        String            @map("size_name")
-  sortOrder       Int               @map("size_order")
+  optionId        Int               @id @default(autoincrement())
+  sizeName        String?            @map("size_name")
+  sortOrder       Int?               @map("size_order")
   productVaration ProductVaration[]
-  sizeCategoryId  Int?
-  sizeCategory    SizeCategory?     @relation(fields: [sizeCategoryId], references: [sizeCategoryId])
-  productItems    ProductItem[]
+  productId       Int?              @map("product_id")
+  product         Product?          @relation("ProductSizeOptions", fields: [productId], references: [productId])
 }
 
 model ProductVaration {
   variationId   Int          @id @default(autoincrement())
   productItem   ProductItem? @relation(fields: [itemId], references: [itemId])
   itemId        Int?         @map("item_id")
-  sizeOption    SizeOption?  @relation(fields: [sizeId], references: [sizeId])
-  sizeId        Int?         @map("size_id")
+  sizeOption    SizeOption?  @relation(fields: [optionId], references: [optionId])
+  optionId      Int?         @map("option_id")
   quantityStock Int          @map("quantity_stock")
   createdAt     DateTime     @default(now()) @map("created_at")
   updatedAt     DateTime     @updatedAt @map("updated_at")
@@ -350,13 +328,11 @@ model ProductItem {
   originalPrice   Int               @map("original_price")
   salePrice       Int?              @map("sale_price")
   productCode     Int               @map("product_code")
+  imageUrl        String?           @map("image_url")
   productId       Int?              @map("product_id")
   product         Product?          @relation(fields: [productId], references: [productId])
   colourId        Int?              @map("colour_id")
   colour          Colour?           @relation(fields: [colourId], references: [colourId])
-  productImages   ProductImage[]
-  sizeId          Int?              @map("size_id")
-  sizeOption      SizeOption?       @relation(fields: [sizeId], references: [sizeId])
   productVaration ProductVaration[]
   styleId         Int?              @map("style_id")
   style           Style?            @relation(fields: [styleId], references: [styleId])

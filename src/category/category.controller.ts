@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CategoryService } from './category.service';
-import {CreateSizeCategoryDto , UpdateSizeCategoryDto, UpdateSizeOptionsDto} from './dto'
+ 
 import {
   AccessGuard,
   AuthenticatedRequest,
@@ -24,6 +24,7 @@ import {
   SearchablePaginatedDto,
   UserType,
 } from '@Common';
+import { UpdateSizeCategoryDto, CreateCategoryDto } from './dto';
 
 @ApiTags('Category')
 @ApiBearerAuth()
@@ -34,15 +35,13 @@ export class CategoryController extends BaseController {
   constructor(private readonly categoryService: CategoryService) {
     super();  }
   @Post()
-  createCategorySize(
-    @Req() req: AuthenticatedRequest,
-    @Body() data: CreateSizeCategoryDto,
+  async createCategory(
+    @Body() data: CreateCategoryDto,
    ) {
-     this.categoryService.createCategorySize({
+   await  this.categoryService.createCategory({
       categoryName: data.categoryName,
-      sizeOptions: data.sizeOptions, 
     });
-    return { sucess: true};
+    return { success: true};
   }
 
   @Get()
@@ -58,14 +57,12 @@ export class CategoryController extends BaseController {
 
   @Patch()
 async updateCategorySize(
-  @Req() req: AuthenticatedRequest,
   @Body() data: UpdateSizeCategoryDto,
 ) {  
  //console.log("These is data",data);
   await this.categoryService.updateCategorySize( {
-    sizeCategoryId: data.sizeCategoryId,
+    categoryId: data.categoryId,
     categoryName: data.categoryName,
-    sizeOptions: data.sizeOptions,
   });
   return { success: true };
 }
@@ -73,10 +70,10 @@ async updateCategorySize(
 @Delete(':id')
 async deleteCategorySize(
   @Req() req: AuthenticatedRequest,
-  @Param('id', ParseIntPipe) sizeCatoryId: number,
+  @Param('id', ParseIntPipe) categoryId: number,
 ) {
   //console.log("These is sizeCategory",sizeCatoryId);
-  await this.categoryService.deleteCategorySize(sizeCatoryId);
+  await this.categoryService.deleteCategorySize(categoryId);
   return { success: true, message: 'Size category deleted successfully' };
 }
 

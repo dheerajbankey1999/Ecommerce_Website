@@ -198,52 +198,29 @@ CREATE TABLE "ProductGender" (
 
 -- CreateTable
 CREATE TABLE "ProductCategory" (
-    "categoryId" SERIAL NOT NULL,
+    "productCategoryId" SERIAL NOT NULL,
     "field_name" TEXT NOT NULL,
     "field_image" TEXT,
-    "size_category_id" INTEGER NOT NULL,
+    "category_id" INTEGER,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "ProductCategory_pkey" PRIMARY KEY ("categoryId")
+    CONSTRAINT "ProductCategory_pkey" PRIMARY KEY ("productCategoryId")
 );
 
 -- CreateTable
 CREATE TABLE "products" (
     "productId" SERIAL NOT NULL,
     "product_name" TEXT NOT NULL,
-    "category_id" INTEGER NOT NULL,
-    "brand_id" INTEGER NOT NULL,
+    "category_id" INTEGER,
     "product_description" TEXT,
+    "brand_name" TEXT,
+    "tag_name" TEXT,
     "status" "product_status" NOT NULL DEFAULT 'active',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "products_pkey" PRIMARY KEY ("productId")
-);
-
--- CreateTable
-CREATE TABLE "tags" (
-    "tagId" SERIAL NOT NULL,
-    "name" TEXT,
-
-    CONSTRAINT "tags_pkey" PRIMARY KEY ("tagId")
-);
-
--- CreateTable
-CREATE TABLE "product_tags" (
-    "product_id" INTEGER NOT NULL,
-    "tag_id" INTEGER NOT NULL,
-
-    CONSTRAINT "product_tags_pkey" PRIMARY KEY ("product_id","tag_id")
-);
-
--- CreateTable
-CREATE TABLE "Brand" (
-    "brandId" SERIAL NOT NULL,
-    "brand_name" TEXT,
-
-    CONSTRAINT "Brand_pkey" PRIMARY KEY ("brandId")
 );
 
 -- CreateTable
@@ -255,39 +232,30 @@ CREATE TABLE "Colour" (
 );
 
 -- CreateTable
-CREATE TABLE "ProductImage" (
-    "imageId" SERIAL NOT NULL,
-    "image_url" TEXT,
-    "item_id" INTEGER NOT NULL,
-
-    CONSTRAINT "ProductImage_pkey" PRIMARY KEY ("imageId")
-);
-
--- CreateTable
-CREATE TABLE "SizeCategory" (
-    "size_category_id" SERIAL NOT NULL,
+CREATE TABLE "Category" (
+    "category_id" SERIAL NOT NULL,
     "category_name" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "SizeCategory_pkey" PRIMARY KEY ("size_category_id")
+    CONSTRAINT "Category_pkey" PRIMARY KEY ("category_id")
 );
 
 -- CreateTable
 CREATE TABLE "SizeOption" (
-    "sizeId" SERIAL NOT NULL,
+    "optionId" SERIAL NOT NULL,
     "size_name" TEXT NOT NULL,
     "size_order" INTEGER NOT NULL,
-    "sizeCategoryId" INTEGER NOT NULL,
+    "product_id" INTEGER,
 
-    CONSTRAINT "SizeOption_pkey" PRIMARY KEY ("sizeId")
+    CONSTRAINT "SizeOption_pkey" PRIMARY KEY ("optionId")
 );
 
 -- CreateTable
 CREATE TABLE "ProductVaration" (
     "variationId" SERIAL NOT NULL,
-    "item_id" INTEGER NOT NULL,
-    "size_id" INTEGER NOT NULL,
+    "item_id" INTEGER,
+    "option_id" INTEGER,
     "quantity_stock" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -301,16 +269,16 @@ CREATE TABLE "ProductItem" (
     "original_price" INTEGER NOT NULL,
     "sale_price" INTEGER,
     "product_code" INTEGER NOT NULL,
-    "product_id" INTEGER NOT NULL,
-    "colour_id" INTEGER NOT NULL,
-    "size_id" INTEGER NOT NULL,
-    "style_id" INTEGER NOT NULL,
-    "neck_line_id" INTEGER NOT NULL,
-    "sleeve_id" INTEGER NOT NULL,
-    "season_id" INTEGER NOT NULL,
-    "length_id" INTEGER NOT NULL,
-    "body_id" INTEGER NOT NULL,
-    "dress_id" INTEGER NOT NULL,
+    "image_url" TEXT,
+    "product_id" INTEGER,
+    "colour_id" INTEGER,
+    "style_id" INTEGER,
+    "neck_line_id" INTEGER,
+    "sleeve_id" INTEGER,
+    "season_id" INTEGER,
+    "length_id" INTEGER,
+    "body_id" INTEGER,
+    "dress_id" INTEGER,
 
     CONSTRAINT "ProductItem_pkey" PRIMARY KEY ("itemId")
 );
@@ -383,12 +351,6 @@ CREATE TABLE "_GenderCategories" (
     "B" INTEGER NOT NULL
 );
 
--- CreateTable
-CREATE TABLE "_ProductTags" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "admin_email_key" ON "admin"("email");
 
@@ -420,9 +382,6 @@ CREATE UNIQUE INDEX "setting_context_mapped_to_key" ON "setting"("context", "map
 CREATE UNIQUE INDEX "setting_option_setting_id_value_key" ON "setting_option"("setting_id", "value");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "tags_name_key" ON "tags"("name");
-
--- CreateIndex
 CREATE UNIQUE INDEX "_UserToMaster_AB_unique" ON "_UserToMaster"("A", "B");
 
 -- CreateIndex
@@ -433,12 +392,6 @@ CREATE UNIQUE INDEX "_GenderCategories_AB_unique" ON "_GenderCategories"("A", "B
 
 -- CreateIndex
 CREATE INDEX "_GenderCategories_B_index" ON "_GenderCategories"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_ProductTags_AB_unique" ON "_ProductTags"("A", "B");
-
--- CreateIndex
-CREATE INDEX "_ProductTags_B_index" ON "_ProductTags"("B");
 
 -- AddForeignKey
 ALTER TABLE "admin_meta" ADD CONSTRAINT "admin_meta_admin_id_fkey" FOREIGN KEY ("admin_id") REFERENCES "admin"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -480,61 +433,46 @@ ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_subAccountId_fkey" FOREIGN
 ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_masterAccountId_fkey" FOREIGN KEY ("masterAccountId") REFERENCES "MasterAccount"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductCategory" ADD CONSTRAINT "ProductCategory_size_category_id_fkey" FOREIGN KEY ("size_category_id") REFERENCES "SizeCategory"("size_category_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductCategory" ADD CONSTRAINT "ProductCategory_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "Category"("category_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "products" ADD CONSTRAINT "products_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "ProductCategory"("categoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "products" ADD CONSTRAINT "products_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "ProductCategory"("productCategoryId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "products" ADD CONSTRAINT "products_brand_id_fkey" FOREIGN KEY ("brand_id") REFERENCES "Brand"("brandId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "SizeOption" ADD CONSTRAINT "SizeOption_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("productId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product_tags" ADD CONSTRAINT "product_tags_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("productId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductVaration" ADD CONSTRAINT "ProductVaration_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "ProductItem"("itemId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product_tags" ADD CONSTRAINT "product_tags_tag_id_fkey" FOREIGN KEY ("tag_id") REFERENCES "tags"("tagId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductVaration" ADD CONSTRAINT "ProductVaration_option_id_fkey" FOREIGN KEY ("option_id") REFERENCES "SizeOption"("optionId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductImage" ADD CONSTRAINT "ProductImage_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "ProductItem"("itemId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("productId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SizeOption" ADD CONSTRAINT "SizeOption_sizeCategoryId_fkey" FOREIGN KEY ("sizeCategoryId") REFERENCES "SizeCategory"("size_category_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_colour_id_fkey" FOREIGN KEY ("colour_id") REFERENCES "Colour"("colourId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductVaration" ADD CONSTRAINT "ProductVaration_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "ProductItem"("itemId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_style_id_fkey" FOREIGN KEY ("style_id") REFERENCES "Style"("styleId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductVaration" ADD CONSTRAINT "ProductVaration_size_id_fkey" FOREIGN KEY ("size_id") REFERENCES "SizeOption"("sizeId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_neck_line_id_fkey" FOREIGN KEY ("neck_line_id") REFERENCES "NeckLine"("neckLineId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("productId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_sleeve_id_fkey" FOREIGN KEY ("sleeve_id") REFERENCES "SleeveLength"("sleeveId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_colour_id_fkey" FOREIGN KEY ("colour_id") REFERENCES "Colour"("colourId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_season_id_fkey" FOREIGN KEY ("season_id") REFERENCES "Season"("seasonId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_size_id_fkey" FOREIGN KEY ("size_id") REFERENCES "SizeOption"("sizeId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_length_id_fkey" FOREIGN KEY ("length_id") REFERENCES "Length"("lengthId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_style_id_fkey" FOREIGN KEY ("style_id") REFERENCES "Style"("styleId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_body_id_fkey" FOREIGN KEY ("body_id") REFERENCES "BodyFit"("bodyId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_neck_line_id_fkey" FOREIGN KEY ("neck_line_id") REFERENCES "NeckLine"("neckLineId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_sleeve_id_fkey" FOREIGN KEY ("sleeve_id") REFERENCES "SleeveLength"("sleeveId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_season_id_fkey" FOREIGN KEY ("season_id") REFERENCES "Season"("seasonId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_length_id_fkey" FOREIGN KEY ("length_id") REFERENCES "Length"("lengthId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_body_id_fkey" FOREIGN KEY ("body_id") REFERENCES "BodyFit"("bodyId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_dress_id_fkey" FOREIGN KEY ("dress_id") REFERENCES "DressType"("dressId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductItem" ADD CONSTRAINT "ProductItem_dress_id_fkey" FOREIGN KEY ("dress_id") REFERENCES "DressType"("dressId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_UserToMaster" ADD CONSTRAINT "_UserToMaster_A_fkey" FOREIGN KEY ("A") REFERENCES "MasterAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -543,13 +481,7 @@ ALTER TABLE "_UserToMaster" ADD CONSTRAINT "_UserToMaster_A_fkey" FOREIGN KEY ("
 ALTER TABLE "_UserToMaster" ADD CONSTRAINT "_UserToMaster_B_fkey" FOREIGN KEY ("B") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_GenderCategories" ADD CONSTRAINT "_GenderCategories_A_fkey" FOREIGN KEY ("A") REFERENCES "ProductCategory"("categoryId") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_GenderCategories" ADD CONSTRAINT "_GenderCategories_A_fkey" FOREIGN KEY ("A") REFERENCES "ProductCategory"("productCategoryId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_GenderCategories" ADD CONSTRAINT "_GenderCategories_B_fkey" FOREIGN KEY ("B") REFERENCES "ProductGender"("genderId") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_ProductTags" ADD CONSTRAINT "_ProductTags_A_fkey" FOREIGN KEY ("A") REFERENCES "products"("productId") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_ProductTags" ADD CONSTRAINT "_ProductTags_B_fkey" FOREIGN KEY ("B") REFERENCES "tags"("tagId") ON DELETE CASCADE ON UPDATE CASCADE;

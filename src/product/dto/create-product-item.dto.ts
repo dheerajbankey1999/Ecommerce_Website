@@ -1,66 +1,63 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsInt, IsOptional, ValidateNested, IsArray, IsNotEmpty } from 'class-validator';
- 
-
-// Product Item DTO
+import { IsString, IsInt, IsOptional, IsNotEmpty, ValidateNested, IsArray } from 'class-validator';
+import { Type } from 'class-transformer';
 export class CreateProductItemDto {
   @ApiProperty()
   @IsInt()
-  originalPrice?: number; // This field is now optional
+  originalPrice: number; 
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
-  salePrice?: number; // This field is optional
+  salePrice?: number;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNotEmpty()
+  @ApiProperty()
   @IsInt()
-  productCode?: number; // This field is optional
+  productCode: number; 
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  colourName?: string; // This field is optional
+  imageUrl?: string; 
+  
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  colourId?: number; 
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-   sizeName?: string; // This field is optional
+  @IsInt()
+  styleId?: number; 
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-   styleName?: string; // This field is optional
+  @IsInt()
+  necklineId?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-   necklineName?: string; // This field is optional
+  @IsInt()
+  sleeveId?: number; 
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  sleeveName?: string; // This field is optional
+  @IsInt()
+  seasonId?: number; 
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  seasonName?: string; // This field is optional
+  @IsInt()
+  lengthId?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  lengthName?: string; // This field is optional
+  @IsInt()
+  bodyId?: number; 
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  bodyName?: string; // This field is optional
+  @IsInt()
+  dressId?: number; 
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  dressName?: string ;
 }

@@ -13,8 +13,8 @@ import {
   //   getAccessGuardCacheKey,
 } from '@Common';
 import { PrismaService } from '../prisma';
-import { Prisma, ProductCategory } from '@prisma/client';
-import { SizeCategory } from '@prisma/client';
+import { Prisma, ProductCategory,Category } from '@prisma/client';
+//import { Category } from '@prisma/client';
 @Injectable()
 export class ProductService {
   constructor(
@@ -27,10 +27,10 @@ export class ProductService {
   ) {}
    
 
-  async getByProductCategoryId(categoryId: number): Promise<ProductCategory> {
+  async getByProductCategoryId(productCategoryId: number): Promise<ProductCategory> {
     return await this.prisma.productCategory.findUniqueOrThrow({
       where: {
-        categoryId: categoryId,
+        productCategoryId: productCategoryId,
       },
     });
   }
@@ -38,7 +38,7 @@ export class ProductService {
     options: {
       fieldName: string;
       fieldImage?: string;
-      sizeCategoryId?: number; 
+      categoryId: number; 
       genderName: string;
     }
   ): Promise<ProductCategory> {
@@ -46,26 +46,25 @@ export class ProductService {
       throw new Error("Options must be provided.");
     }
   
-    const { fieldName, fieldImage, sizeCategoryId, genderName } = options;
-  
+    const { fieldName, fieldImage, categoryId, genderName } = options;
     const newCategory = await this.prisma.productCategory.create({
       data: {
         fieldName,
         fieldImage,
-        sizeCategory: {
+        category: {
           connect: {
-            sizeCategoryId: sizeCategoryId, 
+            categoryId: categoryId, 
           },
         },
-        productGender: {  
+        productGender: {
           create: {
             genderName: genderName,
           },
         },
       },
       include: {
-        sizeCategory: true,  
-        productGender: true, 
+        category: true,
+        productGender: true,
       },
     });
     return newCategory;
@@ -114,7 +113,7 @@ export class ProductService {
       where,
       include: {
         productGender: true, 
-        sizeCategory:true,
+        category:true,
       },
       skip: pagination.skip,
       take: pagination.take,
@@ -133,18 +132,18 @@ export class ProductService {
 
   async updateProductCategory(
     options: {
-      categoryId: number;
+      productCategoryId: number;
       fieldName?: string;
       fieldImage?: string;
       genderId?: number; 
       genderName?: string; 
     }
   ): Promise<ProductCategory> {
-    if (!options || !options.categoryId) {
+    if (!options || !options.productCategoryId) {
       throw new Error("Category ID must be provided.");
     }
-  const { categoryId, fieldName, fieldImage, genderId, genderName } = options;
-  await this.getByProductCategoryId(categoryId);
+  const { productCategoryId, fieldName, fieldImage, genderId, genderName } = options;
+  await this.getByProductCategoryId(productCategoryId);
     const updateData: { [key: string]: any } = {};
   
     if (fieldName !== undefined) {
@@ -163,23 +162,93 @@ export class ProductService {
     }
   
     const updatedCategory = await this.prisma.productCategory.update({
-      where: { categoryId: categoryId }, 
+      where: { productCategoryId: productCategoryId }, 
       data: updateData, 
       include: {
-        sizeCategory: true,
+        category: true,
         productGender: true,
       },
     });
   
     return updatedCategory;
   }
-  async deleteProductCategory(categoryId: number): Promise<ProductCategory> {
-    await this.getByProductCategoryId(categoryId);
+  async deleteProductCategory(productCategoryId: number): Promise<ProductCategory> {
+    await this.getByProductCategoryId(productCategoryId);
   return  await this.prisma.productCategory.delete({
-      where: {  categoryId: categoryId },
+      where: {  productCategoryId: productCategoryId },
       include: { 
         productGender:true,
-        sizeCategory: true}
+        category: true}
     });
   }
+async createProduct(option: {
+  productName: string;
+  productCategoryId?: number;
+  brandName?: string;
+  productDescription?: string;
+  tagName?: string;
+  sizeOptions?: {
+    sizeName: string;
+    sortOrder: number;
+  }[];
+  productItems: {
+    originalPrice: number;
+    salePrice?: number;
+    productCode: number;
+    imageUrl?: string;
+    colourId?: number;
+    styleId?: number;
+    necklineId?: number;
+    sleeveId?: number;
+    seasonId?: number;
+    lengthId?: number;
+    bodyId?: number;
+    dressId?: number;
+  }[];
+}) {
+  const { productName, productCategoryId, brandName, productDescription, tagName, productItems ,sizeOptions} = option;
+    try {
+      const product = await this.prisma.product.create({
+        data: {
+            productName,
+            productCategoryId,
+            productDescription,
+            brandName,
+            tagName,
+            sizeOptions: { 
+                create: sizeOptions?.map((size) => ({
+                    sizeName: size.sizeName,
+                    sortOrder: size.sortOrder,
+                })),
+            },
+            productItems: {
+                create: productItems.map((item) => ({
+                    originalPrice: item.originalPrice,
+                    salePrice: item.salePrice,
+                    productCode: item.productCode,
+                    imageUrl: item.imageUrl,
+                    colour: item.colourId ? { connect: { colourId: item.colourId } } : undefined,
+                    style: item.styleId ? { connect: { styleId: item.styleId } } : undefined,
+                    neckLine: item.necklineId ? { connect: { neckLineId: item.necklineId } } : undefined,
+                    sleeveLength: item.sleeveId ? { connect: { sleeveId: item.sleeveId } } : undefined,
+                    season: item.seasonId ? { connect: { seasonId: item.seasonId } } : undefined,
+                    length: item.lengthId ? { connect: { lengthId: item.lengthId } } : undefined,
+                    bodyFit: item.bodyId ? { connect: { bodyId: item.bodyId } } : undefined,
+                    dressType: item.dressId ? { connect: { dressId: item.dressId } } : undefined,
+                })),
+            },
+        },
+        include: {
+            productItems: true,
+            sizeOptions:true
+        },
+    });
+      return product;
+    } catch (error) {
+      console.error("Error creating product: ", error);
+      throw new Error(`Failed to create product: ${error.message}`);
+    }
+     
+}
+
 }
