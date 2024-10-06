@@ -13,9 +13,10 @@ import {
   //   getAccessGuardCacheKey,
 } from '@Common';
 import { PrismaService } from '../prisma';
-import { Prisma, ProductCategory,Category } from '@prisma/client';
+import { Prisma, ProductCategory,Category, Product, ProductItem } from '@prisma/client';
 //import { Category } from '@prisma/client';
-@Injectable()
+ 
+Injectable()
 export class ProductService {
   constructor(
     @Inject(adminConfigFactory.KEY)
@@ -188,8 +189,8 @@ async createProduct(option: {
   productDescription?: string;
   tagName?: string;
   sizeOptions?: {
-    sizeName: string;
-    sortOrder: number;
+    sizeName?: string;
+    sortOrder?: number;
   }[];
   productItems: {
     originalPrice: number;
@@ -208,6 +209,7 @@ async createProduct(option: {
 }) {
   const { productName, productCategoryId, brandName, productDescription, tagName, productItems ,sizeOptions} = option;
     try {
+      
       const product = await this.prisma.product.create({
         data: {
             productName,
@@ -242,13 +244,218 @@ async createProduct(option: {
             productItems: true,
             sizeOptions:true
         },
-    });
+        });
       return product;
     } catch (error) {
       console.error("Error creating product: ", error);
       throw new Error(`Failed to create product: ${error.message}`);
     }
-     
-}
+  }
 
+  async updateProduct(
+    productId: number,
+    option: {
+      productName?: string;
+      productCategoryId?: number;
+      brandName?: string;
+      productDescription?: string;
+      tagName?: string;
+      sizeOptions?: {
+        optionId?: number;  
+        sizeName?: string;
+        sortOrder?: number;
+      }[];
+      productItems: {
+        itemId: number;  
+        originalPrice?: number;
+        salePrice?: number;
+        productCode?: number;
+        imageUrl?: string;
+        colourId?: number;
+        styleId?: number;
+        necklineId?: number;
+        sleeveId?: number;
+        seasonId?: number;
+        lengthId?: number;
+        bodyId?: number;
+        dressId?: number;
+      }[];
+    }
+  ) {
+    const {
+      productName,
+      productCategoryId,
+      brandName,
+      productDescription,
+      tagName,
+      productItems, // Ensure productItems is always an array
+      sizeOptions,
+    } = option;
+    try {
+      // Update product details
+      if (productName || productCategoryId || brandName || productDescription || tagName || sizeOptions) {
+        const product = await this.prisma.product.update({
+          where: { productId },
+          data: {
+            ...(productName && { productName }),
+            ...(productCategoryId && {
+              productCategory: {
+                connect: { productCategoryId },  
+              },
+            }),
+            ...(productDescription && { productDescription }),
+            ...(brandName && { brandName }),
+            ...(tagName && { tagName }),
+            ...(sizeOptions && {
+              sizeOptions: {
+                upsert: sizeOptions.map((size) => ({
+                  where: { optionId: size.optionId }, 
+                  update: {
+                    sizeName: size.sizeName,
+                    sortOrder: size.sortOrder,
+                  },
+                  create: {
+                    sizeName: size.sizeName,
+                    sortOrder: size.sortOrder,
+                  },
+                })),
+              },
+            }),
+          },
+          include: {
+            sizeOptions: true,
+          },
+        });
+  
+        // Update product items
+        if (productItems && productItems.length > 0) {
+          for (const item of productItems) {
+            if (!item.itemId) {
+              throw new Error("itemId is required for updating product items.");
+            }
+          for (const item of productItems) {
+            await this.prisma.productItem.update({
+              where: { itemId: item.itemId },  
+              data: {
+                originalPrice: item.originalPrice,
+                salePrice: item.salePrice,
+                imageUrl: item.imageUrl,
+                colour: {
+                  disconnect: true,
+                  ...(item.colourId && { connect: { colourId: item.colourId } }),
+                },
+                style: {
+                  disconnect: true,
+                  ...(item.styleId && { connect: { styleId: item.styleId } }),
+                },
+                neckLine: {
+                  disconnect: true,
+                  ...(item.necklineId && { connect: { neckLineId: item.necklineId } }),
+                },
+                sleeveLength: {
+                  disconnect: true,
+                  ...(item.sleeveId && { connect: { sleeveId: item.sleeveId } }),
+                },
+                season: {
+                  disconnect: true,
+                  ...(item.seasonId && { connect: { seasonId: item.seasonId } }),
+                },
+                length: {
+                  disconnect: true,
+                  ...(item.lengthId && { connect: { lengthId: item.lengthId } }),
+                },
+                bodyFit: {
+                  disconnect: true,
+                  ...(item.bodyId && { connect: { bodyId: item.bodyId } }),
+                },
+                dressType: {
+                  disconnect: true,
+                  ...(item.dressId && { connect: { dressId: item.dressId } }),
+                },
+              },
+            });
+          }
+        }
+  
+        return product;
+      }
+    } 
+  }catch (error) {
+      console.error("Error updating product: ", error);
+      throw new Error(`Failed to update product: ${error.message}`);
+    }
+  }
+ 
+
+  async getAllProduct(options?: {
+    search?: string;
+    skip?: number;
+    take?: number;
+  }): Promise<{
+    count: number;
+    skip: number;
+    take: number;
+    data: Product[];
+  }> {
+    const search = options?.search?.trim();
+    const pagination = { skip: options?.skip || 0, take: options?.take || 10 };
+    const where: Prisma.ProductWhereInput = {};
+
+    if (search) {
+      const buildSearchFilter = (search: string): Prisma.ProductWhereInput[] => [
+        {
+          productName: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        },
+      ];
+      
+      const parts = search.split(' ');
+      if (parts.length !== 0) {
+        where.AND = [];
+        for (const part of parts) {
+          if (part.trim()) {
+            where.AND.push({
+              OR: buildSearchFilter(part.trim()),
+            });
+          }
+        }
+      }
+    }
+    const totalItems = await this.prisma.product.count({
+      where,
+    });
+    const items = await this.prisma.product.findMany({
+      where,
+      include: {
+        sizeOptions: true, 
+        productCategory:true,
+        productItems: {
+          include: {
+            style: true,       
+            neckLine: true, 
+            sleeveLength: true,  
+            season: true,    
+            length: true,    
+            bodyFit: true,     
+            dressType: true,     
+            colour: true       
+          }
+        }
+      },
+      skip: pagination.skip,
+      take: pagination.take,
+      orderBy: {
+        productId: 'asc', 
+      },
+    });
+
+    return {
+      count: totalItems,
+      skip: pagination.skip,
+      take: pagination.take,
+      data: items,
+    };
+  }
 }

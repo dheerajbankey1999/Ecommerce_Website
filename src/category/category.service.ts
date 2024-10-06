@@ -14,6 +14,7 @@ import {
 } from '@Common';
 import { PrismaService } from '../prisma';
 import { Category, Prisma} from '@prisma/client';
+import { I18nService } from 'nestjs-i18n';
 @Injectable()
 export class CategoryService {
   constructor(
@@ -23,6 +24,7 @@ export class CategoryService {
     private readonly prisma: PrismaService,
     private readonly utilsService: UtilsService,
     private readonly storageService: StorageService,
+    private readonly i18n: I18nService,
   ) {}
   async getByCategoryId(categoryId: number): Promise<Category> {
     return await this.prisma.category.findUniqueOrThrow({
@@ -32,16 +34,36 @@ export class CategoryService {
     });
   }
 
-  async createCategory(options: { categoryName: string }): Promise<Category> {
-    const { categoryName } = options;
-    console.log("This is category", categoryName);
-    const category = await this.prisma.category.create({
-      data: {
-        categoryName: categoryName,
-      },
-    });
-    return category;
+  private async isNameExistInRoom(
+    name: string,
+ ): Promise<boolean> {
+    return (
+      (await this.prisma.category.count({
+        where: {
+          categoryName: { equals: name, mode: 'insensitive' },
+        },
+      })) !== 0
+    );
   }
+
+  async createCategory(options: { categoryName: string }): Promise<Category> {
+    try {
+      const { categoryName } = options;
+      if (await this.isNameExistInRoom(categoryName)) {
+        throw new Error(this.i18n.translate('res.category.categoryNameExist'));
+      }
+      const category = await this.prisma.category.create({
+        data: {
+          categoryName: categoryName,
+        },
+      });
+  
+      return category;
+    } catch (error) {
+      throw new Error(`Failed to create category: ${error.message}`);
+    }
+  }
+  
   async getAll(options?: {
     search?: string;
     skip?: number;

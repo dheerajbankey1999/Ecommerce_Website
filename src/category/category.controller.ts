@@ -38,10 +38,9 @@ export class CategoryController extends BaseController {
   async createCategory(
     @Body() data: CreateCategoryDto,
    ) {
-   await  this.categoryService.createCategory({
-      categoryName: data.categoryName,
-    });
-    return { success: true};
+       return await  this.categoryService.createCategory({
+        categoryName: data.categoryName,
+      });
   }
 
   @Get()

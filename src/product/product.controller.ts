@@ -25,6 +25,7 @@ import {
   UserType,
 } from '@Common';
 import { ProductCategory } from '@prisma/client';
+import { UpdateProductDto } from './dto/update-product-dto';
 @ApiTags('Product')
 @ApiBearerAuth()
 @Roles(UserType.Admin)
@@ -99,4 +100,31 @@ async deleteProductCategory(
           }
         );
     }
+
+    @Post('update/:id')
+async updateProduct(
+  @Param('id') productId: number,
+  @Body() data: UpdateProductDto
+) {
+  return this.productService.updateProduct(productId, {
+    productName: data.productName,
+    productCategoryId: data.productCategoryId,
+    brandName: data.brandName,
+    productDescription: data.productDescription,
+    tagName: data.tagName,
+    sizeOptions: data.sizeOptions,
+    productItems: data.productItems ?? [],
+  });
+}
+
+@Get()
+  async getAllProduct(
+    @Query() query: SearchablePaginatedDto,
+  ) {
+    return await this.productService.getAllProduct({
+      search: query.search,
+      skip: query.skip,
+      take: query.take,
+    });
+  }
 }
