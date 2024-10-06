@@ -14,6 +14,7 @@ import {
 } from '@Common';
 import { PrismaService } from '../prisma';
 import { Category, Prisma} from '@prisma/client';
+import { TransformationType } from 'class-transformer';
 @Injectable()
 export class CategoryService {
   constructor(
@@ -119,8 +120,7 @@ export class CategoryService {
             data: items,
         };
     } catch (error) {
-        // console.error('Error in getAll:', error); // Log the error
-        throw new Error('An error occurred while retrieving categories.');
+        throw new Error(`'Failed while retrieving categories:${error.message}`);
     }
 }
 
@@ -129,19 +129,27 @@ export class CategoryService {
     categoryId: number;
     categoryName?: string;
   }): Promise<Category> {
-    const { categoryId, categoryName } = options ;
+     try{
+      const { categoryId, categoryName } = options ;
     await this.getByCategoryId(categoryId);
     return   await this.prisma.category.update({
         where: { categoryId: categoryId },
         data: { categoryName },
       });
+     }catch(error){
+      throw new Error(`Failed to update category: ${error.message}`);
+     }
   }
   
   async deleteCategorySize(categoryId: number): Promise<Category> {
+   try{
     await this.getByCategoryId(categoryId);
-  return  await this.prisma.category.delete({
-      where: {  categoryId: categoryId },
-    });
+    return  await this.prisma.category.delete({
+        where: {  categoryId: categoryId },
+      });
+   }catch(error){
+    throw new Error(`Failed to delete category: ${error.message}`);
+   }
   }
   
   

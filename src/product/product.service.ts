@@ -35,6 +35,19 @@ export class ProductService {
       },
     });
   }
+  async checkProductCodeExists(productCode: number): Promise<boolean> {
+    const productItem = await this.prisma.productItem.findFirst({
+      where: {
+        productCode: productCode,
+      },
+      select: {
+        productCode: true,
+      },
+    });
+    return !!productItem;
+  }
+  
+  
   async createProductCategory(
     options: {
       fieldName: string;
@@ -134,7 +147,7 @@ export class ProductService {
       data: items,
     };
    }catch(error){
-    throw new Error(`Failed to find product category: ${error.message}`);
+    throw new Error(`'Failed while retrieving products category:${error.message}`);
    }
   }
 
@@ -224,7 +237,11 @@ async createProduct(option: {
 }) {
   const { productName, productCategoryId, brandName, productDescription, tagName, productItems ,sizeOptions} = option;
     try {
-      
+      for (const item of productItems) {
+        if (await this.checkProductCodeExists(item.productCode)) {
+          throw new Error(`Product code ${item.productCode} already exists.`);
+        }
+      }
       const product = await this.prisma.product.create({
         data: {
             productName,
@@ -471,7 +488,7 @@ async createProduct(option: {
         data: items,
       };
     }catch(error){
-      throw new Error(`Failed to find product: ${error.message}`);
+      throw new Error(`'Failed while retrieving products:${error.message}`);
     };
   }
 }
