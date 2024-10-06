@@ -46,7 +46,7 @@ export class ProductService {
     if (!options) {
       throw new Error("Options must be provided.");
     }
-  
+  try{
     const { fieldName, fieldImage, categoryId, genderName } = options;
     const newCategory = await this.prisma.productCategory.create({
       data: {
@@ -69,6 +69,9 @@ export class ProductService {
       },
     });
     return newCategory;
+  }catch(error){
+    throw new Error(`Failed to create product category: ${error.message}`);
+  }
   }
   
   async getAll(options?: {
@@ -81,6 +84,7 @@ export class ProductService {
     take: number;
     data: ProductCategory[];
   }> {
+   try{
     const search = options?.search?.trim();
     const pagination = { skip: options?.skip || 0, take: options?.take || 10 };
     const where: Prisma.ProductCategoryWhereInput = {};
@@ -129,6 +133,9 @@ export class ProductService {
       take: pagination.take,
       data: items,
     };
+   }catch(error){
+    throw new Error(`Failed to find product category: ${error.message}`);
+   }
   }
 
   async updateProductCategory(
@@ -140,47 +147,55 @@ export class ProductService {
       genderName?: string; 
     }
   ): Promise<ProductCategory> {
-    if (!options || !options.productCategoryId) {
-      throw new Error("Category ID must be provided.");
-    }
-  const { productCategoryId, fieldName, fieldImage, genderId, genderName } = options;
-  await this.getByProductCategoryId(productCategoryId);
-    const updateData: { [key: string]: any } = {};
-  
-    if (fieldName !== undefined) {
-      updateData.fieldName = fieldName;
-    }
-  
-    if (fieldImage !== undefined) {
-      updateData.fieldImage = fieldImage;
-    }
-
-    if (genderId && genderName) {
-      await this.prisma.productGender.update({
-        where: { genderId: genderId },
-        data: { genderName: genderName }, 
-      });
-    }
-  
-    const updatedCategory = await this.prisma.productCategory.update({
-      where: { productCategoryId: productCategoryId }, 
-      data: updateData, 
-      include: {
-        category: true,
-        productGender: true,
-      },
-    });
-  
-    return updatedCategory;
+    try{
+      if (!options || !options.productCategoryId) {
+        throw new Error("Category ID must be provided.");
+      }
+      const { productCategoryId, fieldName, fieldImage, genderId, genderName } = options;
+      await this.getByProductCategoryId(productCategoryId);
+        const updateData: { [key: string]: any } = {};
+      
+        if (fieldName !== undefined) {
+          updateData.fieldName = fieldName;
+        }
+      
+        if (fieldImage !== undefined) {
+          updateData.fieldImage = fieldImage;
+        }
+    
+        if (genderId && genderName) {
+          await this.prisma.productGender.update({
+            where: { genderId: genderId },
+            data: { genderName: genderName }, 
+          });
+        }
+      
+        const updatedCategory = await this.prisma.productCategory.update({
+          where: { productCategoryId: productCategoryId }, 
+          data: updateData, 
+          include: {
+            category: true,
+            productGender: true,
+          },
+        });
+      
+        return updatedCategory;
+    }catch(error){
+      throw new Error(`Failed to update  product category: ${error.message}`);
+     }
   }
   async deleteProductCategory(productCategoryId: number): Promise<ProductCategory> {
+  try{
     await this.getByProductCategoryId(productCategoryId);
-  return  await this.prisma.productCategory.delete({
-      where: {  productCategoryId: productCategoryId },
-      include: { 
-        productGender:true,
-        category: true}
-    });
+    return  await this.prisma.productCategory.delete({
+        where: {  productCategoryId: productCategoryId },
+        include: { 
+          productGender:true,
+          category: true}
+      });
+  }catch(error){
+    throw new Error(`Failed to delete  product category: ${error.message}`);
+  }
   }
 async createProduct(option: {
   productName: string;
@@ -394,65 +409,69 @@ async createProduct(option: {
     take: number;
     data: Product[];
   }> {
-    const search = options?.search?.trim();
-    const pagination = { skip: options?.skip || 0, take: options?.take || 10 };
-    const where: Prisma.ProductWhereInput = {};
-
-    if (search) {
-      const buildSearchFilter = (search: string): Prisma.ProductWhereInput[] => [
-        {
-          productName: {
-            contains: search,
-            mode: 'insensitive',
+    try{
+      const search = options?.search?.trim();
+      const pagination = { skip: options?.skip || 0, take: options?.take || 10 };
+      const where: Prisma.ProductWhereInput = {};
+  
+      if (search) {
+        const buildSearchFilter = (search: string): Prisma.ProductWhereInput[] => [
+          {
+            productName: {
+              contains: search,
+              mode: 'insensitive',
+            },
           },
-        },
-      ];
-      
-      const parts = search.split(' ');
-      if (parts.length !== 0) {
-        where.AND = [];
-        for (const part of parts) {
-          if (part.trim()) {
-            where.AND.push({
-              OR: buildSearchFilter(part.trim()),
-            });
+        ];
+        
+        const parts = search.split(' ');
+        if (parts.length !== 0) {
+          where.AND = [];
+          for (const part of parts) {
+            if (part.trim()) {
+              where.AND.push({
+                OR: buildSearchFilter(part.trim()),
+              });
+            }
           }
         }
       }
-    }
-    const totalItems = await this.prisma.product.count({
-      where,
-    });
-    const items = await this.prisma.product.findMany({
-      where,
-      include: {
-        sizeOptions: true, 
-        productCategory:true,
-        productItems: {
-          include: {
-            style: true,       
-            neckLine: true, 
-            sleeveLength: true,  
-            season: true,    
-            length: true,    
-            bodyFit: true,     
-            dressType: true,     
-            colour: true       
+      const totalItems = await this.prisma.product.count({
+        where,
+      });
+      const items = await this.prisma.product.findMany({
+        where,
+        include: {
+          sizeOptions: true, 
+          productCategory:true,
+          productItems: {
+            include: {
+              style: true,       
+              neckLine: true, 
+              sleeveLength: true,  
+              season: true,    
+              length: true,    
+              bodyFit: true,     
+              dressType: true,     
+              colour: true       
+            }
           }
-        }
-      },
-      skip: pagination.skip,
-      take: pagination.take,
-      orderBy: {
-        productId: 'asc', 
-      },
-    });
-
-    return {
-      count: totalItems,
-      skip: pagination.skip,
-      take: pagination.take,
-      data: items,
+        },
+        skip: pagination.skip,
+        take: pagination.take,
+        orderBy: {
+          productId: 'asc', 
+        },
+      });
+  
+      return {
+        count: totalItems,
+        skip: pagination.skip,
+        take: pagination.take,
+        data: items,
+      };
+    }catch(error){
+      throw new Error(`Failed to find product: ${error.message}`);
     };
   }
 }
