@@ -247,7 +247,6 @@ async createProduct(option: {
         });
       return product;
     } catch (error) {
-      console.error("Error creating product: ", error);
       throw new Error(`Failed to create product: ${error.message}`);
     }
   }
@@ -292,7 +291,6 @@ async createProduct(option: {
       sizeOptions,
     } = option;
     try {
-      // Update product details
       if (productName || productCategoryId || brandName || productDescription || tagName || sizeOptions) {
         const product = await this.prisma.product.update({
           where: { productId },
@@ -381,7 +379,6 @@ async createProduct(option: {
       }
     } 
   }catch (error) {
-      console.error("Error updating product: ", error);
       throw new Error(`Failed to update product: ${error.message}`);
     }
   }

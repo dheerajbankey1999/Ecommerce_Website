@@ -58,12 +58,11 @@ export class CategoryController extends BaseController {
 async updateCategorySize(
   @Body() data: UpdateSizeCategoryDto,
 ) {  
- //console.log("These is data",data);
-  await this.categoryService.updateCategorySize( {
+ await this.categoryService.updateCategorySize( {
     categoryId: data.categoryId,
     categoryName: data.categoryName,
   });
-  return { success: true };
+  return { status: 'success' };
 }
 
 @Delete(':id')

@@ -128,22 +128,17 @@ export class CategoryService {
   async updateCategorySize(options: {
     categoryId: number;
     categoryName?: string;
-
-  }) {
+  }): Promise<Category> {
     const { categoryId, categoryName } = options ;
     await this.getByCategoryId(categoryId);
-    console.log("This is category", categoryName);
-    if (categoryName) {
-      await this.prisma.category.update({
+    return   await this.prisma.category.update({
         where: { categoryId: categoryId },
         data: { categoryName },
       });
-     }
-   return { success: true };
   }
   
   async deleteCategorySize(categoryId: number): Promise<Category> {
-    //console.log(sizeCatoryId);
+    await this.getByCategoryId(categoryId);
   return  await this.prisma.category.delete({
       where: {  categoryId: categoryId },
     });
