@@ -41,13 +41,12 @@ export class ProductController extends BaseController {
   async createProductCategory(
     @Body() data: CreateProductCategoryDto,
   ) {
-    await this.productService.createProductCategory({
+   return await this.productService.createProductCategory({
       fieldName: data.fieldName,
       fieldImage:data.fieldImage ?? '',
       categoryId: data.categoryId,
       genderName: data.genderName ?? '',
-    })
-    return { success: true }; 
+    });
   }
 
   @Get('category')
@@ -82,7 +81,6 @@ async deleteProductCategory(
   @Req() req: AuthenticatedRequest,
   @Param('id', ParseIntPipe) productCategoryId: number,
 ) {
-//  console.log("These is sizeCategory",categoryId);
   await this.productService.deleteProductCategory(productCategoryId);
   return { success: true, message: 'Product category deleted successfully' };
 }
@@ -101,12 +99,12 @@ async deleteProductCategory(
         );
     }
 
-    @Post('update/:id')
+@Post('update/:id')
 async updateProduct(
   @Param('id') productId: number,
   @Body() data: UpdateProductDto
 ) {
-  return this.productService.updateProduct(productId, {
+   this.productService.updateProduct(productId, {
     productName: data.productName,
     productCategoryId: data.productCategoryId,
     brandName: data.brandName,
@@ -115,6 +113,7 @@ async updateProduct(
     sizeOptions: data.sizeOptions,
     productItems: data.productItems ?? [],
   });
+  return { sucess: 'true'}
 }
 
 @Get()
