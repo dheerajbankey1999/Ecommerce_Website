@@ -14,7 +14,6 @@ import {
 } from '@Common';
 import { PrismaService } from '../prisma';
 import { Category, Prisma} from '@prisma/client';
-import { I18nService } from 'nestjs-i18n';
 @Injectable()
 export class CategoryService {
   constructor(
@@ -24,7 +23,6 @@ export class CategoryService {
     private readonly prisma: PrismaService,
     private readonly utilsService: UtilsService,
     private readonly storageService: StorageService,
-    private readonly i18n: I18nService,
   ) {}
   async getByCategoryId(categoryId: number): Promise<Category> {
     return await this.prisma.category.findUniqueOrThrow({
@@ -50,7 +48,7 @@ export class CategoryService {
     try {
       const { categoryName } = options;
       if (await this.isNameExistInRoom(categoryName)) {
-        throw new Error(this.i18n.translate('res.category.categoryNameExist'));
+        throw new Error('Category name already exist');
       }
       const category = await this.prisma.category.create({
         data: {
